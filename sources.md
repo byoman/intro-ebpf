@@ -1,12 +1,10 @@
-[The BSD Packet Filter: A New Architecture for User-level Packet Capture,
-Steven McCanne and Van Jacobson, 1992](http://www.tcpdump.org/papers/bpf-usenix93.pdf)
+[The BSD Packet Filter: A New Architecture for User-level Packet Capture](http://www.tcpdump.org/papers/bpf-usenix93.pdf), Steven McCanne and Van Jacobson, 1992
 
-[Linux Socket Filtering aka Berkeley Packet Filter (BPF), Jay Schulist,
-Daniel Borkmannand Alexei Starovoitov](https://www.kernel.org/doc/Documentation/networking/filter.txt)
+[Linux Socket Filtering aka Berkeley Packet Filter (BPF)](https://www.kernel.org/doc/Documentation/networking/filter.txt), Jay Schulist, Daniel Borkmann and Alexei Starovoitov
 
 [BPF Design Questions & Answers](https://www.kernel.org/doc/Documentation/bpf/bpf_design_QA.rst)
 
-[BPF - the forgotten bytecode, Marek Majkowski, 2014](https://blog.cloudflare.com/bpf-the-forgotten-bytecode/)
+[BPF - the forgotten bytecode](https://blog.cloudflare.com/bpf-the-forgotten-bytecode/), Marek Majkowski, 2014
 
 [Dive into BPF: a list of reading material](https://qmonnet.github.io/whirl-offload/2016/09/01/dive-into-bpf/), Quentin Monnet, 2016
 
