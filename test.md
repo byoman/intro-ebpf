@@ -448,7 +448,7 @@ tool tracing each of its calls and storing its parameter.
 
 ![<span data-label="fig:bcc_trace2"></span>](pics/BPF_figure15.png "User defined function test with trace")
 
-As for writing custom probes, [this code example implements][https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py] a command-line tool to trace any user
+As for writing custom probes, [this code example implements](https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py) a command-line tool to trace any user
 function (given its name and a correct path if needed, much like trace
 but far less powerful), and stores the first argument and the number of
 times the function is called with this argument.
@@ -502,9 +502,9 @@ Appendix
 cBPF code example
 -----------------
 
-[This][https://github.com/byoman/intro-ebpf/blob/master/code/exemple_tcpdump.c] code example attaches a socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6 packets with port 22 pass. The rest will be dropped for this socket.
+[This](https://github.com/byoman/intro-ebpf/blob/master/code/exemple_tcpdump.c) code example attaches a socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6 packets with port 22 pass. The rest will be dropped for this socket.
 
 eBPF - BCC uprobe example
 -------------------------
 
-[This][https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py] command-line tool trace a userland function and store its first argument. The user musts provide the function’s name, and its path if it is a user defined function. It was implemented using BCC’s Python API.
+[This](https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py) command-line tool trace a userland function and store its first argument. The user musts provide the function’s name, and its path if it is a user defined function. It was implemented using BCC’s Python API.
