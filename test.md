@@ -83,12 +83,9 @@ packets with an Internet address foo (considering a scenario where the
 network layer protocols are IP, ARP, and Reverse ARP),
 and the boolean expression tree for the same filter.
 
-![CFG for a filter accepting packets with host ’foo’ (Steven McCanne and
-Van Jacobson, 1992)<span
-data-label="fig:cfg1"></span>](pics/BPF_figure2.png)
+![<span data-label="fig:cfg1"></span>](pics/BPF_figure2.png "CFG for a filter accepting packets with host ’foo’ (Steven McCanne and Van Jacobson, 1992)")
 
-![Expression tree for the same filter (Steven McCanne and Van Jacobson,
-1992)<span data-label="fig:tree1"></span>](pics/BPF_figure3.png)
+![<span data-label="fig:tree1"></span>](pics/BPF_figure3.png "Expression tree for the same filter (Steven McCanne and Van Jacobson, 1992)")
 
 BPF uses the CFG filter model since it has a significant performance
 advantage over the expression tree model (which will redundantly parse
@@ -120,21 +117,16 @@ The operations on these elements can be categorized into **load**
 instructions, **store** instructions, **ALU** instructions, **branch
 instructions** and **miscellaneous** instructions.
 
-![BPF instruction set, instruction size and addressing mode (Steven
-McCanne and Van Jacobson, 1992)<span
-data-label="fig:instSet"></span>](pics/BPF_figure4.png "fig:") ![BPF
-instruction set, instruction size and addressing mode (Steven McCanne
-and Van Jacobson, 1992)<span
-data-label="fig:instSet"></span>](pics/BPF_figure5.png "fig:") ![BPF
-instruction set, instruction size and addressing mode (Steven McCanne
-and Van Jacobson, 1992)<span
-data-label="fig:instSet"></span>](pics/BPF_figure6.png "fig:")
+![<span data-label="fig:instSet"></span>](pics/BPF_figure4.png "BPF instruction set, instruction size and addressing mode (Steven McCanne and Van Jacobson, 1992)") 
 
-Therefore, the CFG respresented in Figure \[fig:cfg1\] can be redrawn
+![<span data-label="fig:instSet"></span>](pics/BPF_figure5.png "BPF instruction set, instruction size and addressing mode (Steven McCanne and Van Jacobson, 1992)")
+
+![<span data-label="fig:instSet"></span>](pics/BPF_figure6.png "BPF instruction set, instruction size and addressing mode (Steven McCanne and Van Jacobson, 1992)")
+
+Therefore, the CFG respresented earlier can be redrawn
 with the appropriate instructions:
 
-![CFG redrawn (Steven McCanne and Van Jacobson, 1992)<span
-data-label="fig:cfg2"></span>](pics/BPF_figure10.png)
+![<span data-label="fig:cfg2"></span>](pics/BPF_figure10.png "CFG redrawn (Steven McCanne and Van Jacobson, 1992)")
 
 cBPF limitations
 ----------------
@@ -179,10 +171,9 @@ Results
 -------
 
 Compared to CSPF, cBPF is way more efficient and leaves the user more
-CPU for ’legitimate’ requests, as shown in Figure \[fig:cbpf\_perf\].\
+CPU for ’legitimate’ requests, as shown in Figure here.
 
-![cBPF/CSPF filter performances (Steven McCanne and Van Jacobson,
-1992)<span data-label="fig:cbpf_perf"></span>](pics/BPF_figure11.png)
+![<span data-label="fig:cbpf_perf"></span>](pics/BPF_figure11.png "cBPF/CSPF filter performances (Steven McCanne and Van Jacobson, 1992)")
 
 Extended BPF
 ============
@@ -429,8 +420,7 @@ LLVM), and front-ends in Python and lua. It is suited for many tasks,
 including performance analysis and network traffic control, and well
 documented.
 
-![BCC tools, in function the application (from the BCC repository)<span
-data-label="fig:bcc_tools"></span>](pics/BPF_figure12.png)
+![<span data-label="fig:bcc_tools"></span>](pics/BPF_figure12.png "BCC tools, in function the application (from the BCC repository)")
 
 The only constraint is that your kernel must have been built with a set
 of options activated (the list is available on the BBC’s github
@@ -447,21 +437,18 @@ will look up for the wanted symbol.
 The following Figure shows the results of the *trace* tracing each call
 to *malloc* along with the size allocated:
 
-![Trace cmd example<span
-data-label="fig:bcc_trace1"></span>](pics/BPF_figure13.png)
+![<span data-label="fig:bcc_trace1"></span>](pics/BPF_figure13.png "Trace cmd example")
 
 For a user-defined function you have to specify a path to the .so
-library or the executable. The figure \[fig:bcc\_trace2\] is a test with
+library or the executable. Here is a test with
 a dummy function I defined (prototype **pouet(int i)**), and the *trace*
 tool tracing each of its calls and storing its parameter.
 
-![User defined function test with **trace**<span
-data-label="fig:bcc_trace2"></span>](pics/BPF_figure16.png "fig:")
-![User defined function test with **trace**<span
-data-label="fig:bcc_trace2"></span>](pics/BPF_figure15.png "fig:")
+![<span data-label="fig:bcc_trace2"></span>](pics/BPF_figure16.png "User defined function test with trace")
 
-As for writing custom probes, the code example provided in figure
-\[fig:bcc\_uprobe1\] implements a command-line tool to trace any user
+![<span data-label="fig:bcc_trace2"></span>](pics/BPF_figure15.png "User defined function test with trace")
+
+As for writing custom probes, [this code example implements][https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py] a command-line tool to trace any user
 function (given its name and a correct path if needed, much like trace
 but far less powerful), and stores the first argument and the number of
 times the function is called with this argument.
@@ -488,8 +475,7 @@ technologies. However, Julia Evans wrote a good
 [article](https://jvns.ca/blog/2017/07/05/linux-tracing-systems/)
 introducing those technologies and their use.
 
-![eBPF place among other tools (Sasha Goldshtein, 2016)<span
-data-label="fig:ebpf_place"></span>](pics/BPF_figure17.png)
+![<span data-label="fig:ebpf_place"></span>](pics/BPF_figure17.png "eBPF place among other tools (Sasha Goldshtein, 2016)")
 
 Conclusion
 ==========
@@ -516,14 +502,9 @@ Appendix
 cBPF code example
 -----------------
 
-The following code example attaches a socket filter for a PF\_PACKET
-socket in order to let all IPv4/IPv6 packets with port 22 pass. The rest
-will be dropped for this socket.
+[This][https://github.com/byoman/intro-ebpf/blob/master/code/exemple_tcpdump.c] code example attaches a socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6 packets with port 22 pass. The rest will be dropped for this socket.
 
 eBPF - BCC uprobe example
 -------------------------
 
-The following command-line tool trace a userland function and store its
-first argument. The user musts provide the function’s name, and its path
-if it is a user defined function. It was implemented using BCC’s Python
-API.
+[This][https://github.com/byoman/intro-ebpf/blob/master/code/trace_user_func.py] command-line tool trace a userland function and store its first argument. The user musts provide the function’s name, and its path if it is a user defined function. It was implemented using BCC’s Python API.
