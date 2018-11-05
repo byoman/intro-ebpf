@@ -151,8 +151,28 @@ Okay. But the user needs a API with which he will load his filter into
 the kernel. Linux provides a calling (in C), so that the user can write
 a program with a cBPF filter, attach it to a socket and do stuff with
 the results. Such a program must include **<linux/filter.h>**
-which contains the following relevant structures: Then you simply create
-your filter code, send it to the kernel via the SO\_ATTACH\_FILTER
+which contains the following relevant structures:
+
+    struct sock_filter {	/* Filter block */
+    	__u16	code;   /* Actual filter code */
+    	__u8	jt;	/* Jump true */
+    	__u8	jf;	/* Jump false */
+    	__u32	k;      /* Generic multiuse field */
+    };
+
+Such a structure is assembled as an array of 4-tuples, that contains
+a code, jt, jf and k value. jt and jf are jump offsets and k a generic
+value to be used for a provided code.
+
+    struct sock_fprog {			/* Required for SO_ATTACH_FILTER. */
+    	unsigned short		   len;	/* Number of filter blocks */
+    	struct sock_filter __user *filter;
+    };
+
+For socket filtering, a pointer to this structure (as shown in
+follow-up example) is being passed to the kernel through setsockopt(2).
+
+Then you simply create your filter code, send it to the kernel via the SO\_ATTACH\_FILTER
 option and if your filter code passes the kernel check on it, you then
 immediately begin filtering data on that socket.
 
@@ -163,8 +183,7 @@ case may be adding a different filter on the same socket where you had
 another filter that is still running: the kernel takes care of removing
 the old one and placing your new one in its place, assuming your filter
 has passed the checks, otherwise if it fails the old filter will remain
-on that socket. The code example in figure \[cBPF-code1\] attaches a
-socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6
+on that socket. [This code example](https://github.com/byoman/intro-ebpf/blob/master/code/exemple_tcpdump.c) attaches a socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6
 packets with port 22 pass. The rest will be dropped for this socket.
 
 Results
