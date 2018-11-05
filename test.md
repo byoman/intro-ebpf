@@ -1,18 +1,4 @@
 ---
-abstract: |
-    EBPF (or simply BPF) is a highly flexible and efficient virtual
-    machine-like construct in the Linux kernel allowing to execute bytecode
-    at various hook points in a safe manner. It is used in a number of Linux
-    kernel subsystems, most prominently networking, tracing and security.\
-    How does BPF works? How can we do userland tracing with it? What changes
-    have allowed the framework to be that much extensible?\
-    This document will try to answer these question, exploring EBPF,
-    providing history and context about BPF and a state of art about linux
-    tracing systems.
-author:
-- 'Yann BONNET - Corentin LE BIGOT'
-title: '**BPF/EBPF**'
-...
 
 History and Context
 ===================
@@ -20,17 +6,20 @@ History and Context
 Since workstations became interconnected, network administrators had a
 need to “see” what is flowing on the wires. The ability to sniff the
 network traffic is necessary when things go wrong, even for the most
-basic debugging.\
+basic debugging.
+
 For this reason operating systems developed APIs for packet sniffing.
 But, as there wasn’t any real standard for it every OS had to invent a
 different API: Sun’s STREAMS NIT, DEC’s Ultrix Packet Filter, SGI’s
 Snoop and Xerox Alto had CMU/Stanford Packet Filter (also called
-**CSPF**). This led to many complications.\
+**CSPF**). This led to many complications.
+
 These APIs just copied all the packets to the user space sniffer (which
 on a busy system resulted in a flood of useless work, copying data is
 expensive) and then used their filtering algorithms to select the
 correct packets (these algorithms were also a bit inefficient, but we’ll
-talk about that later).\
+talk about that later).
+
 All this changed in 1993 when Steven McCanne and Van Jacobson published
 the paper introducing a better way of filtering packets in the kernel,
 BPF.
@@ -43,12 +32,14 @@ provide a way to filter packets and to avoid useless packet copies from
 kernel to userspace. It initially consisted in a simple bytecode that is
 injected from userspace into the kernel, where it is checked by a
 verifier—to prevent kernel crashes or security issues—and attached to a
-socket, then run on each received packet.\
+socket, then run on each received packet.
+
 It was ported to Linux a couple of years later, and used for a small
 number of applications (tcpdump for example). The simplicity of the
 language as well as the existence of an in-kernel Just-In-Time (JIT)
 compiling machine for BPF were factors for the excellent performances of
-this tool.\
+this tool.
+
 Then in 2013, Alexei Starovoitov completely reshaped it, started to add
 new functionalities and to improve the performances of BPF. This new
 version is designated as eBPF (for “extended BPF”), while the former
@@ -67,16 +58,15 @@ collects copies of packets from the network device drivers and delivers
 them to listening applications. The filter decides if a packet should be
 accepted and,if so, how much of it to copy to the listening application.
 
-![cBPF interface with the rest of the system (Steven McCanne and Van
-Jacobson, 1992)<span
-data-label="fig:bpf_interface"></span>](pics/BPF_figure1.png)
+![<span data-label="fig:bpf_interface"></span>](pics/BPF_figure1.png  "cBPF interface with the rest of the system (Steven McCanne and Van Jacobson, 1992)")
 
 Filter design
 -------------
 
 A packet filter is simply a boolean valued function on a packet. If the
 value of the function is true the kernel copies the packet for the
-application; if it is false the packet is ignored.\
+application; if it is false the packet is ignored.
+
 Historically there have been two approaches to the filter abstraction: a
 boolean expression tree (used by CSPF) and a directed acyclic control
 flow graph or CFG (used by BPF). In the tree model each node represents
@@ -86,11 +76,12 @@ model each node represents a packet field predicate while the edges
 represent control transfers. The righthand branch is traversed if the
 predicate is true, the lefthand branch if false. There are two
 terminating leaves which represent true and false for the entire
-filter.\
-For example, Figure 2 shows a CFG filter function that accepts all
+filter.
+
+For example, the following figures show a CFG filter function that accepts all
 packets with an Internet address foo (considering a scenario where the
-network layer protocols are IP, ARP, and Reverse ARP), while figure 3
-shows the boolean expression tree for the same filter.
+network layer protocols are IP, ARP, and Reverse ARP),
+and the boolean expression tree for the same filter.
 
 ![CFG for a filter accepting packets with host ’foo’ (Steven McCanne and
 Van Jacobson, 1992)<span
@@ -101,7 +92,7 @@ data-label="fig:cfg1"></span>](pics/BPF_figure2.png)
 
 BPF uses the CFG filter model since it has a significant performance
 advantage over the expression tree model (which will redundantly parse
-the packet many times).\
+the packet many times).
 
 Design of the BPF pseudo-machine
 --------------------------------
@@ -171,7 +162,8 @@ the results. Such a program must include **<linux/filter.h>**
 which contains the following relevant structures: Then you simply create
 your filter code, send it to the kernel via the SO\_ATTACH\_FILTER
 option and if your filter code passes the kernel check on it, you then
-immediately begin filtering data on that socket.\
+immediately begin filtering data on that socket.
+
 You can also detach filters from your socket via the SO\_DETACH\_FILTER
 option. This is not used much since when you close a socket that has a
 filter on it the filter is automatically removed. another less common
@@ -181,7 +173,7 @@ the old one and placing your new one in its place, assuming your filter
 has passed the checks, otherwise if it fails the old filter will remain
 on that socket. The code example in figure \[cBPF-code1\] attaches a
 socket filter for a PF\_PACKET socket in order to let all IPv4/IPv6
-packets with port 22 pass. The rest will be dropped for this socket.\
+packets with port 22 pass. The rest will be dropped for this socket.
 
 Results
 -------
@@ -202,7 +194,8 @@ its instruction set architecture (ISA) were left behind as modern
 processors moved to 64-bit registers and invented new instructions
 required for multiprocessor systems. BPF’s focus on providing a small
 number of RISC instructions no longer matched the realities of modern
-processors.\
+processors.
+
 So, Alexei Starovoitov introduced the extended BPF (eBPF) design to take
 advantage of advances in modern hardware. The eBPF virtual machine more
 closely resembles contemporary processors, allowing eBPF instructions to
@@ -211,13 +204,15 @@ of the most notable changes was a move to 64-bit registers and an
 increase in the number of registers from two to ten. Since modern
 architectures have far more than two registers, this allows parameters
 to be passed to functions in eBPF virtual machine registers, just like
-on native hardware.\
+on native hardware.
+
 The JIT machines were rewritten. The new language is even closer to
 native machine language than cBPF was. And also, new attach points in
 the kernel have been created. Optimizations on these just-in-time
 instructions compilation made eBPF four times faster on x86-64 than the
 old classic BPF (cBPF) implementation for some network filter
-microbenchmarks, and most were 1.5 times faster.\
+microbenchmarks, and most were 1.5 times faster.
+
 Originally, eBPF was only used internally by the kernel and cBPF
 programs were translated seamlessly under the hood. But with in 2014,
 eBPF has been made available for direct use from user space.
@@ -277,18 +272,19 @@ information, see the bpf() man page.
 
 A program is loaded into the kernel using the BPF\_PROG\_LOAD command,
 or using the wrapper function:
-
+'''
     int bpf_load_program(enum bpf_prog_type type, struct bpf_insn *insns,
     		     size_t insns_cnt, char *license,
     		     u32 kern_version, char *log_buf,
     		     size_t log_buf_sz);
-
+'''
 The *prog\_type* argument specifies the program type to which we will
 attach the filter. It dictates four things: where the program can be
 attached, which in-kernel helper functions the verifier will allow to be
 called, whether network packet data can be accessed directly, and the
 type of object passed as the first argument to the program. In fact, the
-program type essentially defines an API.\
+program type essentially defines an API.
+
 The BPF\_PROG\_TYPE\_KPROBE, BPF\_PROG\_TYPE\_TRACEPOINT and
 BPF\_PROG\_TYPE\_PERF\_EVENT are useful for tracing.\
 
@@ -321,7 +317,7 @@ To access the data collected into the map(s) we created, we use the
 BPF\_MAP\_LOOKUP\_ELEM command, which look up an element with a given
 key in the file referred by the file descriptor of the map. We can also
 use the commands BPF\_MAP\_UPDATE\_ELEM, BPF\_MAP\_DELETE\_ELEM, and
-BPF\_MAP\_GET\_NEXT\_KEY to manipulate maps.\
+BPF\_MAP\_GET\_NEXT\_KEY to manipulate maps.
 
 Building eBPF bytecode
 ----------------------
@@ -330,7 +326,8 @@ From a user perspective, eBPF bytecode can be another headache to
 generate. Fortunately, the LLVM Clang compiler has grown support for an
 eBPF backend that compiles C into bytecode. Object files containing this
 bytecode can then be directly loaded with the bpf() system call and
-BPF\_PROG\_LOAD command.\
+BPF\_PROG\_LOAD command.
+
 You can write your own eBPF program in C by compiling with Clang using
 the *-march=bpf* parameter. There are plenty of eBPF program examples in
 the kernel’s *samples/bpf/* directory; the majority have a “\_kern.c”
@@ -339,7 +336,7 @@ Clang needs to be loaded by a program that runs natively on your machine
 (these samples usually have “\_user.c” in their filename). To make it
 easier to write eBPF programs, the kernel provides the libbpf library,
 which includes helper functions for loading programs and creating and
-manipulating eBPF objects.\
+manipulating eBPF objects.
 
 For example, the high-level flow of an eBPF program and user program
 using libbpf might go something like:
@@ -358,7 +355,7 @@ However, all of the sample code suffers from one major drawback: you
 need to compile your eBPF program from within the kernel source tree.
 Luckily, the BCC project was created to solve this problem. It includes
 a complete toolchain for writing eBPF programs and loading them without
-linking against the kernel source tree.\
+linking against the kernel source tree.
 
 eBPF limitations
 ----------------
@@ -369,22 +366,25 @@ will emit backwards jumps (a result of the compiler’s optimization).
 Thus linux developpers needed to allow these backwards jumps, and they
 had to modify the verifier to assure the user does not attempt to make
 loops (an infinite loop would cause your kernel to lock up), though the
-linux devs are working on a way to allow bounded loops into eBPF.\
+linux devs are working on a way to allow bounded loops into eBPF.
+
 The single BPF program is still limited to 4096 instructions, and all
-instructions must be valid and within range.\
+instructions must be valid and within range.
 
 eBPF safety (Verifier)
 ----------------------
 
 There are inherent security and stability risks with allowing user-space
 code to run inside the kernel. So, a number of checks are performed on
-every eBPF program before it is loaded.\
+every eBPF program before it is loaded.
+
 The first test ensures that the eBPF program terminates and does not
 contain any loops that could cause the kernel to lock up. This is
 checked by doing a depth-first search of the program’s control flow
 graph (CFG). Unreachable instructions are strictly prohibited; any
 program that contains unreachable instructions or containing more than
-4096 instructions will fail to load.\
+4096 instructions will fail to load.
+
 The second stage is more involved and requires the verifier to simulate
 the execution of the eBPF program one instruction at a time. The virtual
 machine state is checked before and after the execution of every
@@ -394,7 +394,8 @@ it’s analyzing all paths through the program, the length of the analysis
 is limited to 64k instructions (which may be hit even if total number of
 instructions is less then 4096, but there are too many branches that
 change stack/registers). The number of ’branches to be analyzed’ is
-limited to 1024.\
+limited to 1024.
+
 The verifier also has a “secure mode” that prohibits pointer arithmetic.
 Secure mode is enabled whenever a user without the CAP\_SYS\_ADMIN
 privilege loads an eBPF program. The idea is to make sure that kernel
@@ -402,14 +403,16 @@ addresses do not leak to unprivileged users and that pointers cannot be
 written to memory. If secure mode is not enabled, then pointer
 arithmetic is allowed but only after additional checks are performed.
 For example, all pointer accesses are checked for type, alignment, and
-bounds violations.\
+bounds violations.
+
 Registers with uninitialized contents (those that have never been
 written to) cannot be read; doing so cause the program load to fail. The
 contents of registers R0-R5 are marked as unreadable across functions
 calls by storing a special value to catch any reads of an uninitialized
 register. Similar checks are done for reading variables on the stack and
 to make sure that no instructions write to the read-only frame-pointer
-register.\
+register.
+
 Lastly, the verifier uses the eBPF program type to restrict which kernel
 functions can be called from eBPF programs and which data structures can
 be accessed. Some program types are allowed to directly access network
@@ -424,14 +427,14 @@ several useful tools and examples, it makes BPF programs easier to
 write, with kernel instrumentation in C (and includes a C wrapper around
 LLVM), and front-ends in Python and lua. It is suited for many tasks,
 including performance analysis and network traffic control, and well
-documented.\
+documented.
 
 ![BCC tools, in function the application (from the BCC repository)<span
 data-label="fig:bcc_tools"></span>](pics/BPF_figure12.png)
 
 The only constraint is that your kernel must have been built with a set
 of options activated (the list is available on the BBC’s github
-repository).\
+repository).
 
 Userland Tracing
 ----------------
@@ -450,7 +453,7 @@ data-label="fig:bcc_trace1"></span>](pics/BPF_figure13.png)
 For a user-defined function you have to specify a path to the .so
 library or the executable. The figure \[fig:bcc\_trace2\] is a test with
 a dummy function I defined (prototype **pouet(int i)**), and the *trace*
-tool tracing each of its calls and storing its parameter.\
+tool tracing each of its calls and storing its parameter.
 
 ![User defined function test with **trace**<span
 data-label="fig:bcc_trace2"></span>](pics/BPF_figure16.png "fig:")
@@ -461,14 +464,15 @@ As for writing custom probes, the code example provided in figure
 \[fig:bcc\_uprobe1\] implements a command-line tool to trace any user
 function (given its name and a correct path if needed, much like trace
 but far less powerful), and stores the first argument and the number of
-times the function is called with this argument.\
+times the function is called with this argument.
 
 eBPF among other tracing tools
 ==============================
 
 Although eBPF has many qualities and is described as a “Linux
 superpower” or as “revolutionary”, it is not the only Linux tracing
-technology.\
+technology.
+
 Below is an non-exhaustive list of tracing technologies and tools:
 
 1.  ftrace;
@@ -482,7 +486,7 @@ Below is an non-exhaustive list of tracing technologies and tools:
 As this document focus on eBPF, I will not dwell on all these other
 technologies. However, Julia Evans wrote a good
 [article](https://jvns.ca/blog/2017/07/05/linux-tracing-systems/)
-introducing those technologies and their use.\
+introducing those technologies and their use.
 
 ![eBPF place among other tools (Sasha Goldshtein, 2016)<span
 data-label="fig:ebpf_place"></span>](pics/BPF_figure17.png)
@@ -522,85 +526,4 @@ eBPF - BCC uprobe example
 The following command-line tool trace a userland function and store its
 first argument. The user musts provide the function’s name, and its path
 if it is a user defined function. It was implemented using BCC’s Python
-API.\
-
-The BSD Packet Filter: A New Architecture for User-level Packet Capture,
-Steven McCanne and Van Jacobson, 1992
-[tcpdump.org](http://www.tcpdump.org/papers/bpf-usenix93.pdf)
-
-Linux Socket Filtering aka Berkeley Packet Filter (BPF), Jay Schulist,
-Daniel Borkmannand Alexei Starovoitov
-[kernel.org](https://www.kernel.org/doc/Documentation/networking/filter.txt)
-
-BPF Design Questions & Answers
-[kernel.org](https://www.kernel.org/doc/Documentation/bpf/bpf_design_QA.rst)
-
-BPF - the forgotten bytecode, Marek Majkowski, 2014
-[blog.cloudflare.com](https://blog.cloudflare.com/bpf-the-forgotten-bytecode/)
-
-Dive into BPF: a list of reading material, Quentin Monnet, 2016
-[qmonnet.github.io](https://qmonnet.github.io/whirl-offload/2016/09/01/dive-into-bpf/)
-
-Linux tc and eBPF, Daniel Borkmann, 2016
-[archive.fosdem.org](https://archive.fosdem.org/2016/schedule/event/ebpf/attachments/slides/1159/export/events/attachments/ebpf/slides/1159/ebpf.pdf)
-
-The BSD Packet Filter : A New Architecture for User-level Packet
-Capture, Suchakrapani Sharma, 2017
-[step.polymtl.ca](http://step.polymtl.ca/~suchakra/PWL-Jun28-MTL.pdf)
-
-eBPF, part 1: Past, Present, and Future, Ferris Ellis, 2017
-[ferrisellis.com](https://ferrisellis.com/posts/ebpf_past_present_future/)
-
-Linux Extended BPF (eBPF) Tracing Tools, Brendan Gregg, updated in 2018
-[brendangregg.com](http://www.brendangregg.com/ebpf.html)
-
-Security Monitoring with eBPF, Brendan Gregg, 2017
-[brendangregg.com](http://www.brendangregg.com/Slides/BSidesSF2017_BPF_security_monitoring.pdf)
-
-Notes on BPF & eBPF, Julia Evans, 2017
-[jvns.ca](https://jvns.ca/blog/2017/06/28/notes-on-bpf---ebpf/)
-
-How to filter packets super fast: XDP & eBPF!, Julia Evans, 2017
-[jvns.ca](https://jvns.ca/blog/2017/04/07/xdp-bpf-tutorial/)
-
-Linux tracing systems & how they fit together, Julia Evans, 2017
-[jvns.ca](https://jvns.ca/blog/2017/07/05/linux-tracing-systems/#dtrace-probes)
-
-The Next Linux Superpower: eBPF Primer, Sasha Goldshtein, 2016
-[usenix.org](https://www.usenix.org/sites/default/files/conference/protected-files/srecon16europe_slides_goldshtein_linux.pdf)
-
-BPF and XDP Reference Guide
-[cilium.readthedocs.io](https://cilium.readthedocs.io/en/latest/bpf/)
-
-learn-ebpf: eBPF C API example, Pratyush Anand,2017
-[github.com](https://github.com/pratyushanand/learn-bpf)
-
-The BPF Compiler Collection (repository)
-[github.com](https://github.com/iovisor/bcc)
-
-A thorough introduction to eBPF, Matt Flemming, 2017
-[lwn.net](https://lwn.net/Articles/740157/)
-
-BPF: the universal in-kernel virtual machine, Jonathan Corbet, 2014
-[lwn.net](https://lwn.net/Articles/599755/)
-
-Extending extended BPF, Jonathan Corbet, 2014
-[lwn.net](https://lwn.net/Articles/603983/)
-
-tracing filters with BPF, Alexei Starovoitov, 2013
-[lwn.net](https://lwn.net/Articles/575444/)
-
-BPF tracing filters, Jonathan Corbet, 2013
-[lwn.net](https://lwn.net/Articles/575531/)
-
-Attaching eBPF programs to sockets, Jonathan Corbet, 2014
-[lwn.net](https://lwn.net/Articles/625224/)
-
-Using user-space tracepoints with BPF, Matt Flemming, 2018
-[lwn.net](https://lwn.net/Articles/753601/)
-
-Bounded loops for eBPF, Edward Cree, 2018
-[lwn.net](https://lwn.net/Articles/748032/)
-
-BPF, bounded loop support work in progress, John Fastabend, 2018
-[lwn.net](https://lwn.net/Articles/756284/)
+API.
